@@ -1,22 +1,24 @@
 use sha1::{Digest, Sha1};
+use std::cmp::Ordering;
 
 const SHA1_BLOCK_SIZE_BYTES: usize = 64;
-//const SHA1_RESULT_SIZE_BYTES: usize = 20;
 
 fn prepare_key(key: &str) -> Vec<u8> {
-    if key.len() > SHA1_BLOCK_SIZE_BYTES {
-        let mut hasher = Sha1::default();
-        hasher.update(key);
-        let r = hasher.finalize();
-        r.as_slice().to_vec()
-    } else if key.len() == SHA1_BLOCK_SIZE_BYTES {
-        key.as_bytes().to_vec()
-    } else {
-        let mut result = key.as_bytes().to_vec();
-        while result.len() < SHA1_BLOCK_SIZE_BYTES {
-            result.push(0);
+    match key.len().cmp(&SHA1_BLOCK_SIZE_BYTES) {
+        Ordering::Greater => {
+            let mut hasher = Sha1::default();
+            hasher.update(key);
+            let r = hasher.finalize();
+            r.as_slice().to_vec()
         }
-        result
+        Ordering::Equal => key.as_bytes().to_vec(),
+        Ordering::Less => {
+            let mut result = key.as_bytes().to_vec();
+            while result.len() < SHA1_BLOCK_SIZE_BYTES {
+                result.push(0);
+            }
+            result
+        }
     }
 }
 
